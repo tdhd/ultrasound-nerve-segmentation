@@ -1,6 +1,6 @@
 from __future__ import print_function
 
-import cv2
+from scipy.misc import imresize
 import numpy as np
 from keras.models import Model
 from keras.layers import Input, merge, Convolution2D, MaxPooling2D, UpSampling2D
@@ -67,6 +67,7 @@ def get_unet():
     conv10 = Convolution2D(1, 1, 1, activation='sigmoid')(conv9)
 
     model = Model(input=inputs, output=conv10)
+    model.summary()
 
     model.compile(optimizer=Adam(lr=1e-5), loss=dice_coef_loss, metrics=[dice_coef])
 
@@ -76,7 +77,7 @@ def get_unet():
 def preprocess(imgs):
     imgs_p = np.ndarray((imgs.shape[0], imgs.shape[1], img_rows, img_cols), dtype=np.uint8)
     for i in range(imgs.shape[0]):
-        imgs_p[i, 0] = cv2.resize(imgs[i, 0], (img_cols, img_rows), interpolation=cv2.INTER_CUBIC)
+        imgs_p[i, 0] = imresize(imgs[i, 0], (img_rows, img_cols))
     return imgs_p
 
 
@@ -106,9 +107,10 @@ def train_and_predict():
     model_checkpoint = ModelCheckpoint('unet.hdf5', monitor='loss', save_best_only=True)
 
     print('-'*30)
-    print('Fitting model...')
+    print('Fitting model... to X.shape {} and Y.shape {}'.format(imgs_train.shape, imgs_mask_train.shape))
+    epochs = 5
     print('-'*30)
-    model.fit(imgs_train, imgs_mask_train, batch_size=32, nb_epoch=20, verbose=1, shuffle=True,
+    model.fit(imgs_train, imgs_mask_train, batch_size=32, nb_epoch=epochs, verbose=1, shuffle=True,
               callbacks=[model_checkpoint])
 
     print('-'*30)

@@ -1,14 +1,16 @@
 from __future__ import print_function
 
 import numpy as np
-import cv2
+from scipy.misc import imresize
+from scipy.stats import threshold
 from data import image_cols, image_rows
 
 
 def prep(img):
     img = img.astype('float32')
-    img = cv2.threshold(img, 0.5, 1., cv2.THRESH_BINARY)[1].astype(np.uint8)
-    img = cv2.resize(img, (image_cols, image_rows))
+    img = threshold(img, threshmax=0.5, newval=1).astype(np.uint8)#0.5, 1., cv2.THRESH_BINARY)[1].astype(np.uint8)
+    img = threshold(img, threshmin=0.5, newval=0).astype(np.uint8)#0.5, 1., cv2.THRESH_BINARY)[1].astype(np.uint8)
+    img = imresize(img, (image_rows, image_cols))
     return img
 
 
